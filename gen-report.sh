@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 d=$1
 mattype=$2

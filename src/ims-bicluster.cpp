@@ -1,4 +1,4 @@
-#include <math.h>
+﻿#include <math.h>
 #include <omp.h>
 #include <getopt.h>
 #include <math.h>
@@ -47,13 +47,15 @@ bool matlab_input_2 = false;
 // weight of spatial edges in the incidence matrix
 t_ims_real alpha = 0.5;
 // edge weight between neighboring points
-t_ims_real max_force = 120;
+t_ims_real max_force = 150;
 // distance inside which we introduce spatial edges
-t_ims_real threshold = 1.5 * 1.5;
+t_ims_real threshold = 2.8;
 // denominator threshold
-t_ims_real r = 0.20;
+t_ims_real r = 0.25;
 // how many eigenvalues to find
 int num_eigens = 10;
+//
+
 
 int help(char *argv[]) {
     cout << "Usage: " << argv[0] << " [--mat] --input=input_file" << endl;
@@ -71,6 +73,7 @@ int main(int argc, char *argv[]) {
         {"eigens",          required_argument,  0, 'e'},
         {"r",               required_argument,  0, 'r'},
         {"maxforce",        required_argument,  0, 'f'},
+	    {"threshold",       required_argument,  0, 't'},
         {0,0,0,0},
     };
 
@@ -90,10 +93,11 @@ int main(int argc, char *argv[]) {
             case 'm':   matlab_input = true;            break;
             case '1':   matlab_input = true;            break;
             case 'n':   matlab_input_2 = true;          break;
+	        case 't':   threshold = atof(optarg);       break;
         }
     }
 
-
+    LOG("threshold = " << threshold);
     // weight of bipartite edges in the incidence matrix
     t_ims_real beta = 1 - alpha;
 
@@ -179,7 +183,7 @@ int main(int argc, char *argv[]) {
         Mat_Close(matfp);
     }
 
-    uint k = (uint)(8*len_spectrum/(t_ims_real)9);
+    uint k = (uint)(7*len_spectrum/(t_ims_real)8);
 
     // find maximal elements
     LOG("Finding maximal elements...");
@@ -204,7 +208,7 @@ int main(int argc, char *argv[]) {
     for (uint j1=0; j1<num_pixels; ++j1) {
         for (uint j2=0; j2<j1; ++j2) {
             t_ims_real dist = (xcoord[j1]-xcoord[j2])*(xcoord[j1]-xcoord[j2]) + (ycoord[j1]-ycoord[j2])*(ycoord[j1]-ycoord[j2]);
-            if (dist <= threshold) {
+            if (dist <= threshold * threshold) {
                 uint common_pixels = 0;
                 for (uint i=0; i<len_spectrum; ++i) {
                     if (U[i][j1] == 1 && U[i][j2] == 1) {

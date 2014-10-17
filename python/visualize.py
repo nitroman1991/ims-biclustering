@@ -1,4 +1,4 @@
-import matplotlib
+﻿import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -133,21 +133,30 @@ start = 0
 if (abs(eigvals_raw[0,0]) < 1e-05):
 	start = 1
 eigvals = eigvals_raw[start:(start+num_eigens), 0]
-eigvecs = np.zeros(shape = (vec_length, num_eigens))
+
+#print "num_eig:", num_eigens
+eigvecs = np.zeros(shape = (vec_length, num_eigens-1))
 for i in xrange(0, num_eigens-start):
 	eigvecs[:, i] = eigvecs_raw[(i+start)*rawvec_length:(i+start)*rawvec_length + vec_length, 2]
-
+#print "", eigvecs
 white_eigvecs = vq.whiten(eigvecs)
 
 for cur_num_centers in xrange(2, num_centers+1):
 	### k-means clustering
-	(centers, distortion) = vq.kmeans(white_eigvecs, cur_num_centers)
+	print "num of centers=", cur_num_centers
+	(centers, distortion) = vq.kmeans(white_eigvecs, cur_num_centers, 30)
+	#(centers, labels) = vq.kmeans2(white_eigvecs, cur_num_centers, 20, 1e-05, 'random')
+	#print "centers:", centers#,"labels:", labels
 	labels = vq.vq(white_eigvecs, centers)[0]+1
+	#print "labels", labels
 	min_label = min(labels)
 	cur_num_centers_res = max(labels)
 
 	## color map for segmentation
 	cmap = get_colormap(cur_num_centers)
+
+	#print "min_label: ",min_label,"cur_num_centers_res:",cur_num_centers_res
+
 	bounds = linspace(0,cur_num_centers_res+1,cur_num_centers_res+2)
 	norm = BoundaryNorm(bounds, cmap.N)
 	mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
