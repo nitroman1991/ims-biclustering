@@ -1,4 +1,4 @@
-﻿#include <math.h>
+#include <math.h>
 #include <omp.h>
 #include <getopt.h>
 #include <math.h>
@@ -24,8 +24,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-
-#include <matio.h>
+#include <boost/tokenizer.hpp>
 
 #define no_argument 0
 #define required_argument 1 
@@ -34,12 +33,12 @@
 #include "logging.hpp"
 
 #include "arpack++/areig.h"
-// #include "lnmatrxc.h"
 
 using namespace std;
 
 typedef double t_ims_real;
 
+char *csv_separator = ",";
 string input_filename = "";
 bool matlab_input = false;
 bool matlab_input_2 = false;
@@ -100,88 +99,76 @@ int main(int argc, char *argv[]) {
     LOG("threshold = " << threshold);
     // weight of bipartite edges in the incidence matrix
     t_ims_real beta = 1 - alpha;
-
-    mat_t *matfp;
-    matvar_t *matvar;
-
+	
     uint len_spectrum, num_pixels;
     t_ims_real **spectra;
     t_ims_real *maxima, *specsdiag, *pixdiag;
     t_ims_real *xcoord, *ycoord;
-    
-    if (matlab_input || matlab_input_2) {
-        LOG("Reading input from " << input_filename << " as a Matlab file...");
-        matfp = Mat_Open(input_filename.c_str(), MAT_ACC_RDONLY);
+    	
+	boost::escaped_list_separator<char> lst_separator("\\", csv_separator, "\"");
+	string tmp_str = "";
+	
+	//reading x coordinates 
+	ifstream xcoord_file(input_filename + ".x.csv");
+	getline(xcoord_file, tmp_str); //in fst string - num of pixels
+	num_pixels = atoi(tmp_str.c_str());
+	LOG("num_pixels = " << num_pixels << "...\n");
+	xcoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	getline(xcoord_file, tmp_str); //in tmp_str - string with x coords 
+	xcoord_file.close();
+	boost::tokenizer<boost::escaped_list_separator<char> > sep1(tmp_str, lst_separator);
+	LOG("Starting read x_coord...");
+	uint i = 0;
+	for(boost::tokenizer<boost::escaped_list_separator<char> >::iterator it = sep1.begin(); it != sep1.end(); ++it){
+		xcoord[i] = atof((*it).c_str()); ++i;
+    	}
+	LOG("End read x_coord...);	
 
-        if ( NULL == matfp ) {
-            fprintf(stderr,"Error creating MAT file \"matfile5.mat\"!\n");
-            return EXIT_FAILURE;
-        }
-
-        if (matlab_input) {
-            matvar = Mat_VarRead(matfp, "x_printed");
-            num_pixels = matvar->dims[0];
-            xcoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-            for (uint j=0; j<num_pixels; ++j) {
-                xcoord[j] = ((t_ims_real*)(matvar->data))[j];
-            }
-
-            matvar = Mat_VarRead(matfp, "y_printed");
-            ycoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-            for (uint j=0; j<num_pixels; ++j) {
-                ycoord[j] = ((t_ims_real*)(matvar->data))[j];
-            }
-            
-            matvar = Mat_VarRead(matfp, "spectra");
-            len_spectrum = matvar->dims[0];
-            LOG("Read " << matvar->dims[0] << " x " << matvar->dims[1] << " matrix.");
-        }
-
-        if (matlab_input_2) {
-            matvar = Mat_VarRead(matfp, "coords");
-            char * const * c = Mat_VarGetStructFieldnames(matvar);
-            matvar_t * matvar_x = Mat_VarGetStructFieldByName(matvar, "x", 0);
-            num_pixels = matvar_x->dims[1];
-            xcoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-            for (uint j=0; j<num_pixels; ++j) {
-                xcoord[j] = ((t_ims_real*)(matvar_x->data))[j];
-            }
-            matvar_t * matvar_y = Mat_VarGetStructFieldByName(matvar, "y", 0);
-            ycoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-            for (uint j=0; j<num_pixels; ++j) {
-                ycoord[j] = ((t_ims_real*)(matvar_y->data))[j];
-            }
-            
-            matvar = Mat_VarRead(matfp, "SP");
-            len_spectrum = matvar->dims[0];
-            LOG("Read " << matvar->dims[0] << " x " << matvar->dims[1] << " matrix.");
-        }
-    LOG("Printing pixel coords to " << input_filename << ".coords.csv");
-    ofstream ofs_coord(input_filename + ".coords.csv");
-    for (uint i=0; i<num_pixels; ++i) {
-        ofs_coord << xcoord[i] << ";" << ycoord[i] << "\n";
-    }
-    ofs_coord.close();
-
-
-        spectra = allocate_2d_with_default<t_ims_real>(num_pixels, len_spectrum, 0);
-        maxima = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-        specsdiag = allocate_1d_with_default<t_ims_real>(len_spectrum, 0);
+	//reading y coordinates
+	ifstream ycoord_file(input_filename + ".y.csv");
+	getline(ycoord_file, tmp_str); //in fst string - num of pixels
+	num_pixels = atoi(tmp_str.c_str());
+	ycoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	getline(ycoord_file, tmp_str); //now in tmp_str - string with y coords 
+	ycoord_file.close();
+	boost::tokenizer<boost::escaped_list_separator<char> > sep2(tmp_str, lst_separator);
+	LOG("Starting read y_coord...");    
+	i = 0;
+	for(boost::tokenizer<boost::escaped_list_separator<char> >::iterator it = sep2.begin(); it != sep2.end(); ++it){
+		ycoord[i] = atof((*it).c_str()); ++i;
+	}
+	LOG("End read y_coord...i2 = " << i);
+	
+	ifstream spectra_file(input_filename + ".spectra.csv");
+	getline(spectra_file, tmp_str); //взяли первую строку, там - число пикселей
+	num_pixels = atoi(tmp_str.c_str());
+	getline(spectra_file, tmp_str); //взяли вторую строку, там - число mz-значений
+	len_spectrum = atoi(tmp_str.c_str());
+	LOG("len_spectrum = " << len_spectrum << "...\n");
+	spectra = allocate_2d_with_default<t_ims_real>(num_pixels, len_spectrum, 0);
+	specsdiag = allocate_1d_with_default<t_ims_real>(len_spectrum, 0);
         pixdiag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	maxima = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	t_ims_real tmp;
+	LOG("Starting read spectra...");	
+	for (uint j = 0; j < len_spectrum; ++j) {
+		tmp_str.clear();
+		getline(spectra_file, tmp_str); //get a next string from the 
+		boost::tokenizer<boost::escaped_list_separator<char> > sep3(tmp_str, lst_separator);
+		i = 0;		
+		for(boost::tokenizer<boost::escaped_list_separator<char> >::iterator it = sep3.begin(); it != sep3.end(); ++it){
+			tmp = atof((*it).c_str());
+			spectra[i][j] = tmp;
+			specsdiag[j] += tmp;
+	                pixdiag[i] += tmp;
+	                if (tmp > maxima[i]) maxima[i] = tmp;
+			++i;
+		}
+	}
+	spectra_file.close();
+	LOG("End read spectra...i = " << i);
 
-        t_ims_real val;
-        for (uint i=0; i<len_spectrum; ++i) {
-            for (uint j=0; j<num_pixels; ++j) {
-                val = ((t_ims_real*)(matvar->data))[len_spectrum*j+i];
-                spectra[j][i] = val;
-                specsdiag[i] += val;
-                pixdiag[j] += val;
-                if (val > maxima[j]) maxima[j] = val;
-            }
-        }
-        Mat_VarFree(matvar);
-        Mat_Close(matfp);
-    }
+    
 
     uint k = (uint)(7*len_spectrum/(t_ims_real)8);
 
