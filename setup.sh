@@ -9,6 +9,9 @@ sudo easy_install distribute
 sudo apt-get install python-dev
 sudo pip install matplotlib numpy scikit-learn statsmodels
 
+cd ./ims-biclustering
+sudo chmod 777  -R ./
+
 cd ./src
 make
 
