@@ -161,12 +161,12 @@ int main(int argc, char *argv[]) {
 		spectra = allocate_2d_with_default<t_ims_real>(num_pixels, len_spectrum, 0);
 		specsdiag = allocate_1d_with_default<t_ims_real>(len_spectrum, 0);
 		pixdiag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+		maxima = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
 	}
 	catch(bad_alloc& e){
 		LOG("Cannot allocate enough memory, aborting...\n");
 		return 1;
 	}
-	maxima = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
 	t_ims_real tmp;
 	LOG("Starting read spectra...");	
 	for (uint j = 0; j < len_spectrum; ++j) {
@@ -192,8 +192,9 @@ int main(int argc, char *argv[]) {
 
     // find maximal elements
     LOG("Finding maximal elements...");
-    try{
-		uint **U = allocate_2d_with_default<uint>(len_spectrum, num_pixels, 0);
+    uint **U;
+	try{
+		U = allocate_2d_with_default<uint>(len_spectrum, num_pixels, 0);
     }
 	catch(bad_alloc& e){
 		LOG("Cannot allocate enough memory, aborting...\n");
@@ -212,11 +213,13 @@ int main(int argc, char *argv[]) {
     }
 
     LOG("Filling incidence matrix...");
-    
+    t_ims_real **W;
+	t_ims_real *on_diag;
+	t_ims_real *little;
 	try{
-		t_ims_real **W = allocate_2d_with_default<t_ims_real>(num_pixels, num_pixels, 0);
-		t_ims_real *on_diag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-		t_ims_real *little = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+		W = allocate_2d_with_default<t_ims_real>(num_pixels, num_pixels, 0);
+		on_diag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+		little = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
 	}
 	catch(bad_alloc& e){
 		LOG("Cannot allocate enough memory, aborting...\n");
