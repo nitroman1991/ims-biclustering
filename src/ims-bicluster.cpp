@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 	for(boost::tokenizer<boost::escaped_list_separator<char> >::iterator it = sep1.begin(); it != sep1.end(); ++it){
 		xcoord[i] = atof((*it).c_str()); ++i;
     	}
-	LOG("End read x_coord...);	
+	LOG("End read x_coord...");	
 
 	//reading y coordinates
 	ifstream ycoord_file(input_filename + ".y.csv");
