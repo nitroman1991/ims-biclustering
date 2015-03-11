@@ -113,7 +113,13 @@ int main(int argc, char *argv[]) {
 	getline(xcoord_file, tmp_str); //in fst string - num of pixels
 	num_pixels = atoi(tmp_str.c_str());
 	LOG("num_pixels = " << num_pixels << "...\n");
-	xcoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	try{
+		xcoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	}
+	catch(bad_alloc& e){
+		LOG("Cannot allocate enough memory, aborting...\n");
+		return 1;
+	}
 	getline(xcoord_file, tmp_str); //in tmp_str - string with x coords 
 	xcoord_file.close();
 	boost::tokenizer<boost::escaped_list_separator<char> > sep1(tmp_str, lst_separator);
@@ -128,7 +134,13 @@ int main(int argc, char *argv[]) {
 	ifstream ycoord_file(input_filename + ".y.csv");
 	getline(ycoord_file, tmp_str); //in fst string - num of pixels
 	num_pixels = atoi(tmp_str.c_str());
-	ycoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	try{
+		ycoord = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	}
+	catch(bad_alloc& e){
+		LOG("Cannot allocate enough memory, aborting...\n");
+		return 1;
+	}
 	getline(ycoord_file, tmp_str); //now in tmp_str - string with y coords 
 	ycoord_file.close();
 	boost::tokenizer<boost::escaped_list_separator<char> > sep2(tmp_str, lst_separator);
@@ -145,9 +157,15 @@ int main(int argc, char *argv[]) {
 	getline(spectra_file, tmp_str); //взяли вторую строку, там - число mz-значений
 	len_spectrum = atoi(tmp_str.c_str());
 	LOG("len_spectrum = " << len_spectrum << "...\n");
-	spectra = allocate_2d_with_default<t_ims_real>(num_pixels, len_spectrum, 0);
-	specsdiag = allocate_1d_with_default<t_ims_real>(len_spectrum, 0);
-        pixdiag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	try{
+		spectra = allocate_2d_with_default<t_ims_real>(num_pixels, len_spectrum, 0);
+		specsdiag = allocate_1d_with_default<t_ims_real>(len_spectrum, 0);
+		pixdiag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	}
+	catch(bad_alloc& e){
+		LOG("Cannot allocate enough memory, aborting...\n");
+		return 1;
+	}
 	maxima = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
 	t_ims_real tmp;
 	LOG("Starting read spectra...");	
@@ -174,8 +192,14 @@ int main(int argc, char *argv[]) {
 
     // find maximal elements
     LOG("Finding maximal elements...");
-    uint **U = allocate_2d_with_default<uint>(len_spectrum, num_pixels, 0);
-    vector<uint> indices(num_pixels);
+    try{
+		uint **U = allocate_2d_with_default<uint>(len_spectrum, num_pixels, 0);
+    }
+	catch(bad_alloc& e){
+		LOG("Cannot allocate enough memory, aborting...\n");
+		return 1;
+	}
+	vector<uint> indices(num_pixels);
     for (uint j=0; j<num_pixels; ++j) { indices.push_back(j); }
     for (uint i=0; i<len_spectrum; ++i) {
         sort(begin(indices), end(indices), [&](const uint & j1, const uint & j2) {
@@ -188,10 +212,16 @@ int main(int argc, char *argv[]) {
     }
 
     LOG("Filling incidence matrix...");
-    t_ims_real **W = allocate_2d_with_default<t_ims_real>(num_pixels, num_pixels, 0);
-    t_ims_real *on_diag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-    t_ims_real *little = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
-
+    
+	try{
+		t_ims_real **W = allocate_2d_with_default<t_ims_real>(num_pixels, num_pixels, 0);
+		t_ims_real *on_diag = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+		t_ims_real *little = allocate_1d_with_default<t_ims_real>(num_pixels, 0);
+	}
+	catch(bad_alloc& e){
+		LOG("Cannot allocate enough memory, aborting...\n");
+		return 1;
+	}
     for (uint j1=0; j1<num_pixels; ++j1) {
         for (uint j2=0; j2<j1; ++j2) {
             t_ims_real dist = (xcoord[j1]-xcoord[j2])*(xcoord[j1]-xcoord[j2]) + (ycoord[j1]-ycoord[j2])*(ycoord[j1]-ycoord[j2]);
