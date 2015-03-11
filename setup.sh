@@ -5,6 +5,8 @@ sudo apt-get install libarpack2-dev libsuperlu3-dev gfortran libatlas-dev libbla
 sudo apt-get install gcc g++ g++-4.7
 sudo apt-get install texlive dvipng libfreetype6-dev libpng-dev
 sudo apt-get install python-pip
+sudo easy_install distribute
+sudo apt-get install python-dev python-matplotlib
 sudo pip install matplotlib numpy scikit-learn statsmodels
 
 cd ./src
