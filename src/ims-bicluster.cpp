@@ -40,8 +40,6 @@ typedef double t_ims_real;
 
 char *csv_separator = ",";
 string input_filename = "";
-bool matlab_input = false;
-bool matlab_input_2 = false;
 
 // weight of spatial edges in the incidence matrix
 t_ims_real alpha = 0.5;
@@ -65,14 +63,12 @@ int main(int argc, char *argv[]) {
     const struct option longopts[] = {
         {"help",            no_argument,        0, 'h'},
         {"input",           required_argument,  0, 'i'},
-        {"mat",             no_argument,        0, 'm'},
-        {"mat1",            no_argument,        0, '1'},
-        {"mat2",            no_argument,        0, 'n'},
         {"alpha",           required_argument,  0, 'a'},
         {"eigens",          required_argument,  0, 'e'},
         {"r",               required_argument,  0, 'r'},
         {"maxforce",        required_argument,  0, 'f'},
 	    {"threshold",       required_argument,  0, 't'},
+		{"csv_sep",         required_argument,  0, 'c'},
         {0,0,0,0},
     };
 
@@ -89,10 +85,8 @@ int main(int argc, char *argv[]) {
             case 'r':   r = atof(optarg);               break;
             case 'f':   max_force = atof(optarg);       break;
             case 'e':   num_eigens = atoi(optarg);      break;
-            case 'm':   matlab_input = true;            break;
-            case '1':   matlab_input = true;            break;
-            case 'n':   matlab_input_2 = true;          break;
-	        case 't':   threshold = atof(optarg);       break;
+            case 't':   threshold = atof(optarg);       break;
+			case 'c':   csv_separator = optarg;         break;
         }
     }
 
@@ -152,9 +146,9 @@ int main(int argc, char *argv[]) {
 	LOG("End read y_coord...i2 = " << i);
 	
 	ifstream spectra_file(input_filename + ".spectra.csv");
-	getline(spectra_file, tmp_str); //взяли первую строку, там - число пикселей
+	getline(spectra_file, tmp_str); //in first line - num of pixels
 	num_pixels = atoi(tmp_str.c_str());
-	getline(spectra_file, tmp_str); //взяли вторую строку, там - число mz-значений
+	getline(spectra_file, tmp_str); //in second line -- num of mz-values
 	len_spectrum = atoi(tmp_str.c_str());
 	LOG("len_spectrum = " << len_spectrum << "...\n");
 	try{
@@ -173,7 +167,7 @@ int main(int argc, char *argv[]) {
 		tmp_str.clear();
 		getline(spectra_file, tmp_str); //get a next string from the 
 		boost::tokenizer<boost::escaped_list_separator<char> > sep3(tmp_str, lst_separator);
-		i = 0;		
+		i = 0;
 		for(boost::tokenizer<boost::escaped_list_separator<char> >::iterator it = sep3.begin(); it != sep3.end(); ++it){
 			tmp = atof((*it).c_str());
 			spectra[i][j] = tmp;
