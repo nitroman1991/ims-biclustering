@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 d=$1
 suffix=$(date '+%y%m%d-%H%M%S')
