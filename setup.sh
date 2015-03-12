@@ -19,7 +19,7 @@ if [ $? -ne 0 ]; then
 	return 1
 fi
 echo -e "Starting installation python...\n\n"
-sudo apt-get -y install python python-pip && sudo easy_install distribute & sudo apt-get install python-dev
+sudo apt-get -y install python python-pip python-dev && sudo easy_install distribute
 if [ $? -ne 0 ]; then
 	echo -e "Error with installing c++ libraries, aborting..."
 	return 1
