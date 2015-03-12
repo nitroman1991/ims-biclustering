@@ -19,8 +19,7 @@ figsize_spectrum = (25,8)
 
 parser = argparse.ArgumentParser(description='Cluster eigenvectors and generate a pretty report.')
 parser.add_argument('-t', metavar='TITLE', type=str, nargs='+', help='project title')
-parser.add_argument('-x', metavar='MAT', type=str, nargs='+', help='csv with spectra matrix')
-parser.add_argument('-y', metavar='TYPE', type=int, nargs='+', help='type of matlab input')
+parser.add_argument('-x', metavar='CSV', type=str, nargs='+', help='csv with spectra matrix')
 parser.add_argument('-e', metavar='VALUES', type=str, nargs='+', help='file of eigenvalues')
 parser.add_argument('-v', metavar='VECTORS', type=str, nargs='+', help='file of eigenvectors')
 parser.add_argument('-c', metavar='COORDS', type=str, nargs='+', help='file of coordinates')
@@ -32,9 +31,9 @@ args = parser.parse_args()
 num_eigens = args.M[0]
 num_centers = args.N[0]
 
-matlab_type = 1
-if args.y != None:
-	matlab_type = args.y[0]
+#matlab_type = 1
+#if args.y != None:
+#	matlab_type = args.y[0]
 
 # my_palette_array = np.array([(256,256,256), (115,211,72), (200,79,140), (198,156,152), (143,211,150), (208,88,59), (145,147,203), (88,118,55), (80,49,92), (104,55,41), (104,79,184)]) / float(256)
 my_palette_array = np.array([(1, 1, 1), (1, 0.5, 0), (0.25, 1, 1), (0.5, 0, 0), (1, 0, 0), (1, 1, 0), (0, 0, 1), (0.5, 0.5, 0.5), (0, 1, 0), (0, 0, 0.4), (0.75, 0.25, 0)])
@@ -61,16 +60,6 @@ for row in spectra_reader:
 	spec_matrix.append(sp_row)
 spectra_matrix = np.asarray(spec_matrix)
 print("End reading the matrix...\n")
-
-"""mat = io.loadmat(args.x[0])
-
-spec_varname = 'spectra'
-if matlab_type == 2:
-	spec_varname = 'SP'
-print(len(spectra_matrix))
-print('\n')
-print(len(spectra_matrix[0]))
-"""
 
 ### average spectrum plot
 average_spectrum = np.mean(spectra_matrix, axis=1)
