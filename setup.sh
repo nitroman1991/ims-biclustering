@@ -37,6 +37,6 @@ sudo mkdir ./data
 sudo chmod 777  -R ./
 
 cd ./src
-make
+sudo make
 
 
